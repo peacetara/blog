@@ -51,7 +51,8 @@ async fn main() -> anyhow::Result<()> {
         .per_page(50)
         .send()
         .await?;
-
+    stdout.write_all(b"Author and Page").await?;
+    
     let mut articles = Vec::new();
     for issue in page {
         let date = issue.created_at.format("%B %d, %Y").to_string();
@@ -63,7 +64,7 @@ async fn main() -> anyhow::Result<()> {
             date: date.clone(),
             url: correct_snake_case(&issue.title),
         });
-
+        stdout.write_all(b"Articles").await?;
         // But we must also create the redirection HTML pages to redirect
         // from the previous names of the article.
         let events = octocrab
@@ -72,7 +73,7 @@ async fn main() -> anyhow::Result<()> {
             .per_page(100)
             .send()
             .await?;
-
+        stdout.write_all(b"Events").await?;
         for event in events.into_iter().filter(|e| e.event == Event::Renamed) {
             if let Some(from_title) = event.rename.and_then(extract_from_field_from_rename) {
                 create_and_write_into(
@@ -86,10 +87,11 @@ async fn main() -> anyhow::Result<()> {
         // Everytime we fetch are article we also fetch the author real name
         let author: User =
             octocrab::instance().get(format!("/users/{}", issue.user.login), None::<&()>).await?;
-        
+        stdout.write_all(b"Author").await?;
         let mut profil_picture_url = author.avatar_url;
         profil_picture_url.set_query(Some("v=4&s=100"));
-
+        stdout.write_all(b"Profile Picture").await?;
+        
         // Then we create the article HTML pages. We must do that after the redirection
         // pages to be sure to replace the final HTML page by the article.
         create_and_write_into(
@@ -105,7 +107,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
     }
-
+    stdout.write_all(b"Write posts.").await?;
     let mut profil_picture_url = author.avatar_url;
     profil_picture_url.set_query(Some("v=4&s=100"));
 
@@ -114,7 +116,7 @@ async fn main() -> anyhow::Result<()> {
         IndexTemplate { profil_picture_url, username: author.name, bio: author.bio, articles },
     )
     .await?;
-
+    stdout.write_all(b"Write index").await?;
     Ok(())
 }
 
