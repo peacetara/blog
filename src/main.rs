@@ -10,7 +10,7 @@ use octocrab::{format_media_type, OctocrabBuilder};
 use reqwest::Url;
 use serde::Deserialize;
 use tokio::fs::{self, File};
-use tokio::io::{self, ErrorKind};
+use tokio::io::{self, ErrorKind, AsyncWriteExt};
 
 const SYNOPSIS_LENGTH: usize = 200;
 
