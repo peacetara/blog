@@ -16,7 +16,8 @@ const SYNOPSIS_LENGTH: usize = 200;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    println!("\nMain Startup");
+    let mut stdout = io::stdout();
+    stdout.write_all(b"Main Startup").await?;
     let owner_repo = std::env::var("GITHUB_REPOSITORY").expect("please define `GITHUB_REPOSITORY`");
     let (owner, repo) = owner_repo.split_once('/').unwrap();
 
@@ -41,9 +42,7 @@ async fn main() -> anyhow::Result<()> {
             .add_header(http::header::ACCEPT, format_media_type("html"))
             .build()?
     };
-    println!("\nGet Author");
     let author: User = octocrab::instance().get(format!("/users/{}", owner), None::<&()>).await?;
-    println!("\nAuthor: {}, now page",author);
     let page = octocrab
         .issues(owner, repo)
         .list()
@@ -52,7 +51,7 @@ async fn main() -> anyhow::Result<()> {
         .per_page(50)
         .send()
         .await?;
-    println!("\nPage gotten, now articles.");
+
     let mut articles = Vec::new();
     for issue in page {
         let date = issue.created_at.format("%B %d, %Y").to_string();
@@ -118,7 +117,7 @@ async fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
-println!("\nindex.html written");
+
 #[derive(Deserialize)]
 struct User {
     avatar_url: Url,
